@@ -184,7 +184,7 @@ many encapsulations.
 The KDF specified in {{kdf}} does not contribute to the IND-CCA2 security of
 the PQ-KEM. It is applied to the PQ-KEM shared secret to derive a key of the
 length required by the content encryption or key wrap algorithm and to bind
-that key to the COSE context, including the algorithm identifiers.
+that key to the COSE context.
 
 During the transition from traditional to post-quantum algorithms, protocols
 may need to combine both types of algorithms. The use of hybrid post-quantum
