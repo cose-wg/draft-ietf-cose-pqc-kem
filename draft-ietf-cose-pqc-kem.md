@@ -388,7 +388,6 @@ therefore bound either to Direct Key Agreement or to Key Agreement with Key
 Wrap. A recipient that supports both modes for the same PQ-KEM publishes two
 COSE_Key objects, one for each algorithm.
 
-Note: Binding a KEM key to one of the two modes differs from the "OKP" usage
 model and requires further discussion within the WG.
 
 For ML-KEM, the "pub" parameter contains the encapsulation key as specified in
