@@ -370,7 +370,7 @@ ciphersuites defined by this document.
 # Use of AKP Key Type for PQ-KEM Keys in COSE {#akp}
 
 The "AKP" (Algorithm Key Pair) key type, defined in
-{{?RFC9964}, is the only key representation defined by this
+{{!RFC9964}, is the only key representation defined by this
 document for PQ-KEM keys. A COSE_Key with "kty" set to "AKP" represents a
 PQ-KEM key pair. The public key is carried in the "pub" parameter. If
 included, the private key is carried in the "priv" parameter. Both parameters
