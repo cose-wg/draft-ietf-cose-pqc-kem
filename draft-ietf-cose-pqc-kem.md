@@ -62,11 +62,6 @@ normative:
         org: IANA
      title: CBOR Object Signing and Encryption (COSE)
      target: https://www.iana.org/assignments/cose
-  COSE-IANA-Curves:
-     author:
-        org: IANA
-     title: COSE Elliptic Curves
-     target: https://www.iana.org/assignments/cose
 
 informative:
 
@@ -179,7 +174,17 @@ Key Agreement with Key Wrap supports efficient encryption for multiple
 recipients: the content is encrypted once with the CEK, and an individually
 wrapped CEK is provided for each recipient.
 
-It is essential to note that in the PQ-KEM, one needs to apply Fujisaki-Okamoto {{FO}} transform or its variant {{HHK}} on the PQC KEM part to ensure that the overall scheme is IND-CCA2 secure, as mentioned in {{?I-D.ietf-tls-hybrid-design}}. The FO transform is performed using the KDF such that the PQC KEM shared secret achieved is IND-CCA2 secure. As a consequence, one can re-use PQC KEM public keys but there is an upper bound that must be adhered to.
+ML-KEM is IND-CCA2 secure, as stated in Section 3.2 of {{FIPS203}}. This
+property comes from a variant of the Fujisaki-Okamoto transform ({{FO}},
+{{HHK}}) that is built into the ML-KEM encapsulation and decapsulation
+algorithms. A COSE implementation does not need to add anything to obtain it.
+Because of this property, a recipient's ML-KEM public key can be reused for
+many encapsulations.
+
+The KDF specified in {{kdf}} does not contribute to the IND-CCA2 security of
+the PQ-KEM. It is applied to the PQ-KEM shared secret to derive a key of the
+length required by the content encryption or key wrap algorithm and to bind
+that key to the COSE context.
 
 During the transition from traditional to post-quantum algorithms, protocols
 may need to combine both types of algorithms. The use of hybrid post-quantum
@@ -245,7 +250,7 @@ The decapsulation process is as follows:
           SS = KDF(SS', SSLen)
 ~~~
 
-# KDF
+# KDF {#kdf}
 
 ## Key Derivation
 
@@ -362,19 +367,30 @@ ciphersuites defined by this document.
 ~~~
 {: #ciphersuite-table title="COSE PQ-KEM Ciphersuites."}
 
-# Use of AKP Key Type for PQC KEM Keys in COSE
+# Use of AKP Key Type for PQ-KEM Keys in COSE {#akp}
 
 The "AKP" (Algorithm Key Pair) key type, defined in
-{{?I-D.ietf-cose-dilithium}}, is used to represent PQC KEM keys in COSE. A
-COSE_Key with "kty" set to "AKP" represents a PQC KEM key pair. The public key
-is carried in the "pub" parameter. If included, the private key is carried in
-the "priv" parameter. Both parameters are byte strings containing the raw
-algorithm-specific key material.
+{{!RFC9964}, is the only key representation defined by this
+document for PQ-KEM keys. A COSE_Key with "kty" set to "AKP" represents a
+PQ-KEM key pair. The public key is carried in the "pub" parameter. If
+included, the private key is carried in the "priv" parameter. Both parameters
+are byte strings containing the raw algorithm-specific key material.
 
-The "AKP" key type mandates the use of the "alg" parameter. While this requirement is suitable for PQ digital signature algorithms, applying the same model to PQ KEMs would require distinguishing between keys used
-for Direct Key Agreement and those used for Key Agreement with Key Wrap.
+PQ-KEM keys are not represented using the "OKP" or "EC2" key types, and this
+document does not register values in the "COSE Elliptic Curves" registry. The
+PQ-KEM is identified by the "alg" parameter of the AKP key and not by a "crv"
+parameter.
 
-Note: This differs from the "OKP" usage model and requires further discussion within the WG.
+The "AKP" key type mandates the use of the "alg" parameter. The value of "alg"
+MUST be one of the algorithms listed in {{ciphersuite-table}}, and a key MUST
+only be used with the algorithm identified by its "alg" parameter. A key is
+therefore bound either to Direct Key Agreement or to Key Agreement with Key
+Wrap. A recipient that supports both modes for the same PQ-KEM publishes two
+COSE_Key objects, one for each algorithm. The two COSE_Key objects MAY contain the same key pair.
+
+
+For ML-KEM, the "pub" parameter contains the encapsulation key as specified in
+{{FIPS203}}.
 
 For ML-KEM algorithms, as specified in {{FIPS203}}, there are two possible
 representations of a private key: a seed and a fully expanded private key
@@ -480,47 +496,10 @@ registry {{COSE-IANA}}:
 - Reference: This document (TBD)
 - Recommended: No
 
-## COSE Elliptic Curves Registrations
-
-IANA is requested to register the following values in the "COSE Elliptic Curves" registry {{COSE-IANA-Curves}}.
-
-### ML-KEM-512
-
-| Name             | ML-KEM-512                                                              |
-|------------------|-------------------------------------------------------------------------|
-| Value            | TBD1                                                                    |
-| Key Type         | AKP                                                                     |
-| Description      | NIST Post-Quantum ML-KEM-512 |
-| Change Controller| IETF                                                                    |
-| Reference        | This document                                                           |
-| Recommended      | No
-
-### ML-KEM-768
-
-| Name             | ML-KEM-768                                                              |
-|------------------|-------------------------------------------------------------------------|
-| Value            | TBD2                                                                    |
-| Key Type         | AKP                                                                     |
-| Description      | NIST Post-Quantum ML-KEM-768 |
-| Change Controller| IETF                                                                    |
-| Reference        | This document                                                           |
-| Recommended      | No                                                                      |
-
-### ML-KEM-1024
-
-| Name             | ML-KEM-1024                                                             |
-|------------------|-------------------------------------------------------------------------|
-| Value            | TBD3                                                                   |
-| Key Type         | AKP                                                                     |
-| Description      | NIST Post-Quantum ML-KEM-1024 |
-| Change Controller| IETF                                                                    |
-| Reference        | This document                                                           |
-| Recommended      | No                                                                      |
-
 # Acknowledgments
 {: numbered="false"}
 
-The authors thank AJITOMI Daisuke, Brian Campbell, Daniel Huigens, Filip Skokan, Ilari Liusvaara, Neil Madden,
+The authors thank Mark Atwood, Ajitomi Daisuke, Brian Campbell, Daniel Huigens, Filip Skokan, Ilari Liusvaara, Neil Madden,
 and Stepan Yakimovich for their contributions to this specification.
 
 --- back
@@ -532,6 +511,16 @@ and Stepan Yakimovich for their contributions to this specification.
 
 -01
 
+* Corrected the description of IND-CCA2 security: ML-KEM is IND-CCA2 secure
+  on its own, and the KDF does not perform the FO transform.
+* Clarified that the KDF derives a key of the required length and binds it
+  to the COSE context.
+* Removed the statement about an upper bound on the reuse of PQ-KEM public
+  keys.
+* AKP is the only key representation. Removed the registrations in the
+  COSE Elliptic Curves registry.
+* An AKP key is bound to the algorithm in its "alg" parameter and thus to
+  either Direct Key Agreement or Key Agreement with Key Wrap.
 * Required AEAD content encryption algorithms.
 * Security Considerations: added text on algorithm substitution with AES Key
   Wrap.
