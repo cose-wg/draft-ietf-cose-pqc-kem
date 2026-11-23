@@ -386,7 +386,7 @@ MUST be one of the algorithms listed in {{ciphersuite-table}}, and a key MUST
 only be used with the algorithm identified by its "alg" parameter. A key is
 therefore bound either to Direct Key Agreement or to Key Agreement with Key
 Wrap. A recipient that supports both modes for the same PQ-KEM publishes two
-COSE_Key objects, one for each algorithm.
+COSE_Key objects, one for each algorithm. The two COSE_Key objects MAY contain the same key pair.
 
 
 For ML-KEM, the "pub" parameter contains the encapsulation key as specified in
